@@ -1,0 +1,217 @@
+        -:    0:Source:C:/Users/Ethan/Desktop/2048_2/main.cpp
+        -:    0:Graph:C:\Users\Ethan\Desktop\2048_2\cmake-build-debug-\CMakeFiles\2048_2.dir\main.cpp.gcno
+        -:    0:Data:C:\Users\Ethan\Desktop\2048_2\cmake-build-debug-\CMakeFiles\2048_2.dir\main.cpp.gcda
+        -:    0:Runs:1
+        -:    1:#include <stdio.h>
+        -:    2:#include <stdlib.h>
+        -:    3:#include <time.h>
+        -:    4:#include <easyx.h>
+        -:    5:#include <math.h>
+        -:    6:#include <conio.h>
+        -:    7:
+        -:    8:# 2048
+        -:    9:
+        -:   10:int matrix[4][4];
+        -:   11:#define GRID_SIZE   120 // 格子的宽度和高度
+        -:   12:#define INTERVAL    15  // 格子的间隔
+        -:   13:enum Color {
+        -:   14:    zero = RGB(205, 193, 180),//0的颜色
+        -:   15:    twoTo1 = RGB(238, 228, 218),//2的颜色
+        -:   16:    twoTo2 = RGB(237, 224, 200),//4的颜色
+        -:   17:    twoTo3 = RGB(242, 177, 121),//8的颜色
+        -:   18:    twoTo4 = RGB(245, 149, 99),//16的颜色
+        -:   19:    twoTo5 = RGB(246, 124, 95),//32的颜色
+        -:   20:    twoTo6 = RGB(246, 94, 59),//64的颜色
+        -:   21:    twoTo7 = RGB(242, 177, 121),//128的颜色
+        -:   22:    twoTo8 = RGB(237, 204, 97),//256的颜色
+        -:   23:    twoTo9 = RGB(255, 0, 128),//512的颜色
+        -:   24:    twoTo10 = RGB(145, 0, 72),//1024的颜色
+        -:   25:    twoTo11 = RGB(242, 17, 158),//2048的颜色
+        -:   26:    back = RGB(187, 173, 160),//背景颜色
+        -:   27:};
+        -:   28:Color colors[13] = {zero, twoTo1, twoTo2, twoTo3, twoTo4, twoTo5, twoTo6, twoTo7, twoTo8, twoTo9, twoTo10, twoTo11,
+        -:   29:                    back};
+        -:   30:
+        -:   31:// 随机数生成2、4,2的概率更高
+        -:   32:int createNumber() {
+        -:   33:    if (rand() % 10 != 0) {
+        -:   34:        return 2;
+        -:   35:    } else {
+        -:   36:        return 4;
+        -:   37:    }
+        -:   38:}
+        -:   39:
+        -:   40://  空白处填充数
+        -:   41:void matrixFillNumber() {
+        -:   42:    while (true) {
+        -:   43:        int r = rand() % 4;
+        -:   44:        int c = rand() % 4;
+        -:   45:        if (matrix[r][c] == 0) {
+        -:   46:            matrix[r][c] = 2;
+        -:   47:            break;
+        -:   48:        }
+        -:   49:    }
+        -:   50:}
+        -:   51:
+        -:   52:void init() {
+        -:   53:    srand(time(NULL));
+        -:   54:    for (int i = 0; i < 2; i++) {
+        -:   55:        matrixFillNumber();
+        -:   56:    }
+        -:   57:}
+        -:   58:
+        -:   59:void t() {
+        -:   60:    int r = rand() % 4;
+        -:   61:    int c = rand() % 4;
+        -:   62:    if (matrix[r][c] == 0) {
+        -:   63:        matrix[r][c] = createNumber();
+        -:   64:    }
+        -:   65:}
+        -:   66:
+        -:   67://int matrix[4][4] = {{0, 2, 2, 0},
+        -:   68://                    {2, 0, 2, 2},
+        -:   69://                    {0, 4, 4, 2},
+        -:   70://                    {2, 4, 4, 4}};
+        -:   71:
+        -:   72:// 反转数组下标交换函数
+        -:   73:int *get(int x, int y, char inv) {
+        -:   74:    switch (inv) {
+        -:   75:        case 'i':
+        -:   76:            return &matrix[y][x];
+        -:   77:            break;
+        -:   78:        default:
+        -:   79:            return &matrix[x][y];
+        -:   80:            break;
+        -:   81:    }
+        -:   82:}
+        -:   83:
+        -:   84:// 合并函数
+        -:   85:void ty(int begin, int c, int *temp, int be, char inv,bool* isMove) {
+        -:   86:    if (*get(begin, c, inv) != 0) {
+        -:   87:        if (*get(*temp, c, inv) == 0) {
+        -:   88:            *get(*temp, c, inv) = *get(begin, c, inv);
+        -:   89:            *get(begin, c, inv) = 0;
+        -:   90:            *isMove = true;
+        -:   91:        } else if (*get(*temp, c, inv) == *get(begin, c, inv)) {
+        -:   92:            *get(*temp, c, inv) *= 2;
+        -:   93:            *get(begin, c, inv) = 0;
+        -:   94:            *temp += be;
+        -:   95:            *isMove = true;
+        -:   96:        } else {
+        -:   97:            *get(*temp + be, c, inv) = *get(begin, c, inv);
+        -:   98:            if ((*temp + be) != begin) {
+        -:   99:                *get(begin, c, inv) = 0;
+        -:  100:                *isMove = true;
+        -:  101:            }
+        -:  102:            *temp += be;
+        -:  103:        }
+        -:  104:    }
+        -:  105:}
+        -:  106:
+        -:  107://  移动函数
+        -:  108:void move(char direcainon) {
+        -:  109:    bool isMove = false;
+        -:  110:    char inv;
+        -:  111:    if (direcainon == 'r' || direcainon == 'l') inv = 'i';
+        -:  112:    if (direcainon == 'u' || direcainon == 'l') {
+        -:  113:        for (int c = 0; c < 4; c++) {
+        -:  114:            int temp = 0;
+        -:  115:            for (int begin = 1; begin < 4; begin++) {
+        -:  116:                ty(begin, c, &temp, 1, inv,&isMove);
+        -:  117:            }
+        -:  118:        }
+        -:  119:    } else if (direcainon == 'd' || direcainon == 'r') {
+        -:  120:        for (int c = 0; c < 4; c++) {
+        -:  121:            int temp = 3;
+        -:  122:            for (int begin = 2; begin >= 0; begin--) {
+        -:  123:                ty(begin, c, &temp, -1, inv,&isMove);
+        -:  124:            }
+        -:  125:        }
+        -:  126:    }
+        -:  127:    if (isMove){
+        -:  128:        matrixFillNumber();
+        -:  129:    }
+        -:  130:}
+        -:  131:
+        -:  132:void kb() {
+        -:  133:    //  获取键盘按键
+        -:  134:    int key = _getch();
+        -:  135:    switch (key) {
+        -:  136:        case 'W':
+        -:  137:        case 'w':
+        -:  138:        case '72':
+        -:  139:            move('u');
+        -:  140://          matrixFillNumber();
+        -:  141:            break;
+        -:  142:        case 'S':
+        -:  143:        case 's':
+        -:  144:        case '80':
+        -:  145:            move('d');
+        -:  146://            matrixFillNumber();
+        -:  147:            break;
+        -:  148:        case 'A':
+        -:  149:        case 'a':
+        -:  150:        case '75':
+        -:  151:            move('l');
+        -:  152://            matrixFillNumber();
+        -:  153:            break;
+        -:  154:        case 'D':
+        -:  155:        case 'd':
+        -:  156:        case '77':
+        -:  157:            move('r');
+        -:  158://            matrixFillNumber();
+        -:  159:            break;
+        -:  160:    }
+        -:  161:}
+        -:  162:
+        -:  163:void draw() {
+        -:  164:    //  画格子
+        -:  165:    setbkcolor(RGB(187, 173, 160));
+        -:  166:    cleardevice();
+        -:  167:    for (int i = 0; i < 4; i++) {
+        -:  168:        for (int k = 0; k < 4; k++) {
+        -:  169:            //  求格子坐标
+        -:  170:            int x = k * GRID_SIZE + (k + 1) * INTERVAL;
+        -:  171:            int y = i * GRID_SIZE + (i + 1) * INTERVAL;
+        -:  172:            int index = matrix[i][k] ? log2(matrix[i][k]) : 0;
+        -:  173:            setfillcolor(colors[index]);
+        -:  174:            solidroundrect(x, y, x + GRID_SIZE, y + GRID_SIZE, 15, 15);
+        -:  175:            if (matrix[i][k]) {
+        -:  176:                //  写入数据,但是要先把数字转为字符串
+        -:  177:                char numberStr[5] = {0};
+        -:  178:                sprintf(numberStr, "%d ", matrix[i][k]);
+        -:  179:                settextcolor(RGB(119, 110, 101));
+        -:  180:                settextstyle(60, 0, "Arial Black");
+        -:  181:                setbkmode(TRANSPARENT);
+        -:  182:                //  文字居中
+        -:  183:                int hspace = (GRID_SIZE - textwidth(numberStr)) / 2;
+        -:  184:                int vspace = (GRID_SIZE - textheight(numberStr)) / 2;
+        -:  185:                outtextxy(x + hspace + 9, y + vspace, numberStr);
+        -:  186:            }
+        -:  187:
+        -:  188:            printf("%5d ", matrix[i][k]);
+        -:  189:        }
+        -:  190:        printf("\n");
+        -:  191:    }
+        -:  192:    printf("----------------------\n");
+        -:  193:}
+        -:  194:
+        -:  195:
+        -:  196:int main() {
+        -:  197:
+        -:  198:    // 窗口
+        -:  199:    initgraph(4 * GRID_SIZE + (4 + 1) * INTERVAL, 4 * GRID_SIZE + (4 + 1) * INTERVAL, EX_SHOWCONSOLE);
+        -:  200:
+        -:  201:    init();
+        -:  202:    while (true){
+        -:  203:        draw();
+        -:  204:        kb();
+        -:  205:    }
+        -:  206:
+        -:  207://    while (true){
+        -:  208://        int key = _getch();
+        -:  209://        printf("%d\n",key);
+        -:  210://    }
+        -:  211:
+        -:  212:    return 0;
+        -:  213:}
